@@ -1,6 +1,16 @@
-// Multiple markers and save output into qualtrics
+/* Display a map with different labelled markers in Qualtrix and store output.
+*   Intended for suvey requiring participants to place markers on a map and record the result
+*
+*   Nicolai Bronikowski -  December 2020
+*
+*   Based on existing code:
+*   https://github.com/pkmnct/qualtrics-google-map-lat-long and Sabarish Senthilnathan (stackoverflow)
+*/
 
 var googleMapAPIKey = ""; // enter your access code here
+var allMarkers = [];
+var dataBox;
+
 
 Qualtrics.SurveyEngine.addOnload(function() {
 	
@@ -15,11 +25,12 @@ Qualtrics.SurveyEngine.addOnload(function() {
     var locationInputPadding = "15px";
     var labels = "ABCDEFG"; // marker labels A B C ...
     var labelIndex = 0;
-	var allMarkers = [];
-	var markerObjs = [];
+
+	// var markerObjs = [];
 
     // Get the data entry box and store it in a variable
-    var dataBox = document.getElementById("QR~" + this.questionId);
+    dataBox = document.getElementById("QR~" + this.questionId);
+
 
     // Get the question container and store it in a variable.
     var questionContainer = this.getQuestionContainer();
@@ -73,8 +84,13 @@ Qualtrics.SurveyEngine.addOnload(function() {
 
                     var labeltext = prompt("Enter Marker Label Info");
 					var temp_marker = addMarker(event.latLng, map, labeltext);
-					allMarkers.push(temp_marker);
+					//alert(map.markers)
+					allMarkers.push(temp_marker); //console.log(allMarkers)
+					//allMarkers.map(e=>{alert(e.getPosition())})
 					//alert(allMarkers.length)
+					//allMarkers.map(e=>{alert(e.getPosition())})
+					//dataBox.value = "inFn";alert("inFn",dataBox);
+					writeTest();
 					var card = new map.card();
                     card.getBody().innerHTML = labeltext;
                     var labelcontent = JSON.parse(localStorage.getItem('map'));
@@ -86,6 +102,8 @@ Qualtrics.SurveyEngine.addOnload(function() {
                     }
                 }
             });
+			
+
 			
             function addMarker(location, map, note) {
                var marker = new google.maps.Marker({
@@ -103,13 +121,14 @@ Qualtrics.SurveyEngine.addOnload(function() {
         } catch (err) {
             setTimeout(function() {
 			  displayMap()
-			  writeDataQualtrix()
+			  //writeDataQualtrix()
 			}, 1000)
         }
 		return allMarkers;
+
     }
-	markerObjs = displayMap();
-	writeDataQualtrix(allMarkers,dataBox);
+	displayMap();
+	//writeDataQualtrix(allMarkers,dataBox);
 });
 
 function attachNote(marker, note) {
@@ -123,13 +142,13 @@ function attachNote(marker, note) {
 
 
 function writeDataQualtrix(markerObjs,dataBox) {
-	alert(markerObjs.length)
+	//alert(markerObjs.length)
 	var mapAnswers = [];
 	for(var i=0, l = markerObjs.length; i < l; i++){
-		mapAnswers[i]= markerObjs[i].getTitle() + "  " + markerObjs[i].getPosition();
+		mapAnswers[i]= markerObjs[i].getTitle() ;
 	}
-	dataBox = mapAnswers;
-	return dataBox;
+	//dataBox.value = "1";
+	//alert("INSIDE")
 }
 	
 
@@ -155,3 +174,15 @@ try {
     console.log("Unable to load Google Maps API. Details: " + err);
     alert("Unable to load Google Maps API.");
 }
+
+function writeTest(){ dataBox.value="";
+					 allMarkers.map(e=>{dataBox.value+=e.getPosition()});alert("outFn",dataBox.value)};
+Qualtrics.SurveyEngine.addOnUnload(function()
+{
+	/*Place your JavaScript here to run when the page is unloaded*/
+	//alert("AllMarkers")
+	//dataBox.value = 1;
+	//alert(dataBox.value)
+	//allMarkers.map(e=>{writeDataQualtrix(e,dataBox)})
+
+});
