@@ -1,19 +1,18 @@
 /* Display a map with different labelled markers in Qualtrix and store output.
-*   Intended for suvey requiring participants to place markers on a map and record the result
-*
-*   Nicolai Bronikowski -  December 2020
-*
-*   Based on existing code:
-*   https://github.com/pkmnct/qualtrics-google-map-lat-long and Sabarish Senthilnathan (stackoverflow)
-*/
-
+ *   Intended for suvey requiring participants to place markers on a map and record the result
+ *
+ *   Nicolai Bronikowski -  December 2020
+ *
+ *   Based on existing code:
+ *   https://github.com/pkmnct/qualtrics-google-map-lat-long and Sabarish Senthilnathan (stackoverflow)
+ */
 var googleMapAPIKey = ""; // enter your access code here
 var allMarkers = [];
 var dataBox;
 
 
 Qualtrics.SurveyEngine.addOnload(function() {
-	
+
     // --- User Variables, set these: ---
     var mapCenterLat = 53;
     var mapCenterLng = -55;
@@ -23,10 +22,11 @@ Qualtrics.SurveyEngine.addOnload(function() {
     var locationInputWidth = "96%";
     var locationInputMargin = "2%";
     var locationInputPadding = "15px";
-    var labels = "ABCDEFG"; // marker labels A B C ...
-    var labelIndex = 0;
 
-	// var markerObjs = [];
+
+    // This is for the marker labelling on the map  A B C ...
+    var labels = "ABCDEFG";
+    var labelIndex = 0;
 
     // Get the data entry box and store it in a variable
     dataBox = document.getElementById("QR~" + this.questionId);
@@ -71,7 +71,7 @@ Qualtrics.SurveyEngine.addOnload(function() {
                 streetViewControl: false,
                 zoom: mapZoom
             });
-			
+
 
             // this bit controls the pins and text prompt to label the pins
             var counterss = 0;
@@ -83,15 +83,17 @@ Qualtrics.SurveyEngine.addOnload(function() {
                     counterss++ // iterates through all the markers
 
                     var labeltext = prompt("Enter Marker Label Info");
-					var temp_marker = addMarker(event.latLng, map, labeltext);
-					//alert(map.markers)
-					allMarkers.push(temp_marker); //console.log(allMarkers)
-					//allMarkers.map(e=>{alert(e.getPosition())})
-					//alert(allMarkers.length)
-					//allMarkers.map(e=>{alert(e.getPosition())})
-					//dataBox.value = "inFn";alert("inFn",dataBox);
-					writeTest();
-					var card = new map.card();
+                    var temp_marker = addMarker(event.latLng, map, labeltext);
+
+                    google.maps.event.addListener(temp_marker, 'dragend', function(event) {
+                        writeTest();
+                    });
+                    allMarkers.push(temp_marker);
+
+                    // Write data to Qualtrics question
+                    writeTest();
+
+                    var card = new map.card();
                     card.getBody().innerHTML = labeltext;
                     var labelcontent = JSON.parse(localStorage.getItem('map'));
                     console.log(labelcontent);
@@ -102,57 +104,41 @@ Qualtrics.SurveyEngine.addOnload(function() {
                     }
                 }
             });
-			
 
-			
             function addMarker(location, map, note) {
-               var marker = new google.maps.Marker({
-                   position: location,
-                   label: labels[labelIndex++ % labels.length],
-                   map: map,
-                   draggable: true,
-				   editable: true,
-				   title: note
+                var marker = new google.maps.Marker({
+                    position: location,
+                    label: labels[labelIndex++ % labels.length],
+                    map: map,
+                    draggable: true,
+                    editable: true,
+                    title: note
                 });
-				attachNote(marker, note);
-				return marker;
+                attachNote(marker, note);
+                return marker;
             }
-					
+
         } catch (err) {
             setTimeout(function() {
-			  displayMap()
-			  //writeDataQualtrix()
-			}, 1000)
+                displayMap()
+            }, 1000)
         }
-		return allMarkers;
+        return allMarkers;
 
     }
-	displayMap();
-	//writeDataQualtrix(allMarkers,dataBox);
+    displayMap();
 });
 
 function attachNote(marker, note) {
-	var infowindow = new google.maps.InfoWindow({
-		content: note
-	});
-	marker.addListener('click', function() {
-		infowindow.open(marker.get('map'), marker);
-	});
+    var infowindow = new google.maps.InfoWindow({
+        content: note
+    });
+    marker.addListener('click', function() {
+        infowindow.open(marker.get('map'), marker);
+    });
 }
 
 
-function writeDataQualtrix(markerObjs,dataBox) {
-	//alert(markerObjs.length)
-	var mapAnswers = [];
-	for(var i=0, l = markerObjs.length; i < l; i++){
-		mapAnswers[i]= markerObjs[i].getTitle() ;
-	}
-	//dataBox.value = "1";
-	//alert("INSIDE")
-}
-	
-
-	
 
 // Load the Google Maps API if it is not already loaded.
 try {
@@ -175,14 +161,16 @@ try {
     alert("Unable to load Google Maps API.");
 }
 
-function writeTest(){ dataBox.value="";
-					 allMarkers.map(e=>{dataBox.value+=e.getPosition()});alert("outFn",dataBox.value)};
-Qualtrics.SurveyEngine.addOnUnload(function()
-{
-	/*Place your JavaScript here to run when the page is unloaded*/
-	//alert("AllMarkers")
-	//dataBox.value = 1;
-	//alert(dataBox.value)
-	//allMarkers.map(e=>{writeDataQualtrix(e,dataBox)})
+
+// Function writes the data to Qualtrix
+function writeTest() {
+    dataBox.value = "";
+    allMarkers.map(e => {
+        dataBox.value += "{Title:  " + e.getTitle() + " , LatLong:  " + e.getPosition() + "}  ;  "
+    });
+};
+
+
+Qualtrics.SurveyEngine.addOnUnload(function() {
 
 });

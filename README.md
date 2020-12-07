@@ -5,12 +5,10 @@ Intended for suvey requiring participants to place markers on a map and record t
 Based on existing code:
 https://github.com/pkmnct/qualtrics-google-map-lat-long and Sabarish Senthilnathan (stackoverflow)
 
-
 ## Features:
 * multiple markers (custom limit to 3)
-* dragable 
-* user labels each marker 
+* dragable
+* user labels each marker
 
-
-## Problems: 
-* doesn't store the output in the question form -> let me know if you know how to fix it
+## Output for the Qualtrix text form question (multiline):
+`{Title:  Point_1 , lat_long:  (53.719230419984584, -57.021484375)}{Title:  Point_2 , lat_long:  (47.587372848154246, -52.69287109375)}`
